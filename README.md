@@ -28,7 +28,7 @@ It also has functions to transfer tokens, approve token allowances, and manage t
 
 Vault Contract:
 
-The Vault contract interacts with an ERC20 token and acts as a mechanism to handle deposits and withdrawals of the ERC20 token. The Vault contract is a basic interface which interacts with the ERC20 token (CTX) and handles deposits and withdrawals of the ERC20(CTX) token.
+The ERC20 token and the Vault contract work together to handle deposits and withdrawals of the ERC20 token. A simple interface for interacting with the ERC20 token (CTX) and managing deposits and withdrawals is the Vault contract.
 
 
 ## Getting Started
@@ -37,7 +37,7 @@ The Vault contract interacts with an ERC20 token and acts as a mechanism to hand
 
 To run this program, you can use Remix, an online Solidity IDE. To get started, go to the Remix website at https://remix.ethereum.org/.
 
-Once you are on the Remix website, create a new file by clicking on the "+" icon in the left-hand sidebar. Save the file with a .sol extension (e.g., ADROCX.sol). Copy and paste the following code into the file:
+Once you are on the Remix website, create a new file by clicking on the "+" icon in the left-hand sidebar. Save the file with a .sol extension (e.g., CREATRIX.sol). Copy and paste the following code into the file:
 
 ```
 // SPDX-License-Identifier: MIT
@@ -47,19 +47,24 @@ contract ERC20 {
     uint public totalSupply;
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
-    string public name = "ADROCX";
-    string public symbol = "ADX";
+    string public name = "CREATRIX";
+    string public symbol = "CTX";
     uint8 public decimals = 18;
 
-		event Transfer(address indexed from, address indexed to, uint value);
+    event Transfer(address indexed from, address indexed to, uint value);
     event Approval(address indexed owner, address indexed spender, uint value);
-    address public target;
-    uint public lives;
-    constructor()
-    {
-        target = msg.sender;
-        lives = 7;
+
+    uint public playerLevel;
+    mapping(address => uint[3]) public userFoundItems; // Store found items per user [0: Sword, 1: Shield, 2: BattleAxe]
+    string public IG = "In-game items are: 1. Sword 2. Shield 3. Battle Axe";
+    string public itemFound; // Store the name of the last item found
+
+    constructor() {
+        playerLevel = 1;
     }
+
+    enum Item { Sword, Shield, BattleAxe }
+
     function transfer(address recipient, uint amount) external returns (bool) {
         balanceOf[msg.sender] -= amount;
         balanceOf[recipient] += amount;
@@ -96,11 +101,30 @@ contract ERC20 {
         totalSupply -= amount;
         emit Transfer(msg.sender, address(0), amount);
     }
-    function aim_and_shoot() public returns(uint)
-    {
-      assert(target == msg.sender);  
-      lives = lives - 1;
-      return lives;
+
+    function findItem(uint itemNumber) external returns (string memory) {
+        require(itemNumber >= 0 && itemNumber <= 2, "Invalid item number");
+
+        Item item = Item(itemNumber);
+
+        if (userFoundItems[msg.sender][itemNumber] < 1) {
+            if (item == Item.Sword) {
+                playerLevel += 1;
+                userFoundItems[msg.sender][itemNumber] += 1;
+                itemFound = "Sword";
+            } else if (item == Item.Shield) {
+                playerLevel += 2;
+                userFoundItems[msg.sender][itemNumber] += 1;
+                itemFound = "Shield";
+            } else if (item == Item.BattleAxe) {
+                playerLevel += 3;
+                userFoundItems[msg.sender][itemNumber] += 1;
+                itemFound = "BattleAxe";
+            }
+            return itemFound;
+        }
+
+        revert("You have already found this item");
     }
 }
 
@@ -188,17 +212,17 @@ contract Vault {
 ```
 To set-up the Avalanche EVM subnet, we need RPC URL, token symbol and Chain ID.
 
-The RPC URL for 'mySubnet' is: http://127.0.0.1:9650/ext/bc/21eAJZ7zRrCzxbQQxSLDDvYSFZL4v6QJMEBh5RWiv2FBQR7U1j/rpc
+The RPC URL for 'Mysubnet' is: http://127.0.0.1:9650/ext/bc/2gSDwydEFZBGzNXENypzqmN5324i9kEPSFM9FyuhxUKuAiVrz2/rpc
 
-Token Symbol: ADX
+Token Symbol: CTX
 
-Chain ID: 2965
+Chain ID: 2611
 
 
 Deploy these contracts to your Avalanche EVM subnet after setting it up.
 
 
-To compile the code, click on the "Solidity Compiler" tab in the left-hand sidebar. Make sure the "Compiler" option is set to "0.8.17" (or another compatible version), and then click on the "Compile ADROCX.sol" button.
+To compile the code, click on the "Solidity Compiler" tab in the left-hand sidebar. Make sure the "Compiler" option is set to "0.8.17" (or another compatible version), and then click on the "Compile CREATRIX.sol" button.
 
 
 After we compile the contract, we connect our  Metamask wallet to the Remix IDE.
@@ -207,18 +231,19 @@ After we compile the contract, we connect our  Metamask wallet to the Remix IDE.
 Next, we change the environment to Injected Provider. 
 
 
-Once the contract is deployed, you can interact with it to mint, burn, transfer tokens. 
+Once the contract is deployed, you can interact with the various functions in the contract. 
 
+By interacting with the finditem function, you can icrease the playerlevel of the charecter.
 
-Upon interacting with the aim_and_shoot function, you will find that the 'lives' is decremented by 1.
+By interacting with the IG functions, you can see the items which the player can find in the game.
 
-
+By interacting with the ItemFound function, you can see which item the player has found in the game.
 
 ## Authors
 
-Aditya Raju  
+Ashwath R 
 
-adrocxsmma@gmail.com
+ashwathraju85@gmail.com
 
 ## License
 
